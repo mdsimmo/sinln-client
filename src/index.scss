@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.members {
+  margin: 0 auto;
+  border-spacing: 0;
+  th {
+    font-weight: normal;
+    background-color: #ddd;
+  }
+
+  tr.edit {
+    background-color: #eee;
+  }
+
+  tr.deleted {
+    background-color: red;
+  }
+
+  td, th {
+    padding: 5px 15px;
+  }
+}
+
+.save-button, .cancel-button {
+  font-size: 0;
+  visibility: hidden;
+  &::before {
+    font-size: 1rem;
+    visibility: visible;
+  }
+}
+.save-button::before {
+  content: '✓';
+}
+.cancel-button::before {
+  content: '✖';
+}
