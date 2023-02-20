@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.scss';
 import { UserList } from './list';
-import { LogIn } from './login';
+import { RegisterForm } from './register-form';
 import { Menu } from './menu';
 
 type SiteProps = Record<string, never>
@@ -27,7 +27,7 @@ class Site extends React.Component<SiteProps, SiteState> {
         break;
       case "login":
       default:
-        page = <LogIn />;
+        page = <RegisterForm />;
         break;
     }
 

@@ -13,8 +13,9 @@
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": "latest",
+        "tsconfigRootDir": ".",
         "sourceType": "module",
-        "project": "sinln-client/tsconfig.json"
+        "project": "tsconfig.json"
     },
     "plugins": [
         "react",

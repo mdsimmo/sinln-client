@@ -1,3 +1,9 @@
+@keyframes load-rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
 }
@@ -7,33 +13,22 @@ body {
   border-spacing: 0;
   th {
     font-weight: normal;
-    background-color: #ddd;
+    background-color: #ccc;
   }
 
-  tr.edit {
+  tr.editing {
     background-color: #eee;
   }
 
   tr.deleted {
-    background-color: red;
+    background-color: #777;
   }
 
   td, th {
     padding: 5px 15px;
   }
-}
 
-.save-button, .cancel-button {
-  font-size: 0;
-  visibility: hidden;
-  &::before {
-    font-size: 1rem;
-    visibility: visible;
+  .loading-message svg {
+    animation: load-rotation 1s steps(8, end) infinite;
   }
-}
-.save-button::before {
-  content: '✓';
-}
-.cancel-button::before {
-  content: '✖';
 }

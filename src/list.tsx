@@ -1,31 +1,13 @@
+import { faCheck, faCircleExclamation, faEdit, faSpinner, faTrash, faUndo, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
+import { api_url, cloneMember, Member } from './core';
 
-const apiURL = "https://api.sinln.mdsimmo.com/";
-
-type EditProps = {
-  save: () => void;
-  cancel: () => void;
-  delete: () => void;
-  undo: () => void;
-}
-
-function EditButtons(props: EditProps) {
-  return (
-    <span>
-      <button className="save-button"onClick={props.save}>Save</button>
-      <button className="cancel-button" onClick={props.cancel}>Cancel</button>
-      <button className="delete-button" onClick={props.delete}>Delete</button>
-      <button className="undo-button" onClick={props.undo}>Undo</button>
-    </span>
-  ); 
-}
-
-type Member = {
-  id: string;
-  name: string;
-  email: string;
-  address: string;
-  mobile: string;
+enum State {
+  DEFAULT = "",
+  LOADING = "loading",
+  DELETED = "deleted",
+  EDITING = "editing",
 }
 
 type MemberProps = {
@@ -33,59 +15,176 @@ type MemberProps = {
 }
 
 type MemberState = {
-  editing: boolean;
-  deleted: boolean;
+  state: State;
+  error: string | null;
+  member: Member;
+  newMember: Member;
 }
 
 class MemberRow extends React.Component<MemberProps, MemberState> {
   constructor(props: MemberProps) {
     super(props);
     this.state = {
-      editing: false,
-      deleted: false,
+      state: State.DEFAULT,
+      error: null,
+      member: props.member,
+      newMember: props.member,
     };
   }
 
   render() {
     return (
-      <tr className={ (this.state.editing ? "edit " : "") + (this.state.deleted ? "deleted" : "")}>
-            <td>{this.props.member.id}</td>
-            <td>{this.props.member.name}</td>
-            <td>{this.props.member.email}</td>
-            <td>{this.props.member.mobile}</td>
-            <td>{this.props.member.address}</td>
-            <td><EditButtons
-              delete={()=>{
-                fetch(apiURL+"delete-member", {
-                  method: 'POST',
-                  body: JSON.stringify({
-                    id: this.props.member.id
-                  }),
-                });
-                this.setState({
-                  deleted: true,
-                  editing: false,
-                });
-              }}
-              undo={()=>{
-                console.log("TODO Add undo button");
-                this.setState({deleted: false});
-              }}
-              save={()=>{
-                fetch(apiURL+"update-member", {
-                  method: 'POST',
-                  body: JSON.stringify({
-                    id: this.props.member.id,
-                    name: this.props.member.name,
-                    email: this.props.member.email,
-                    mobile: this.props.member.mobile,
-                    address: this.props.member.address,
-                  }),
-                });
-                this.setState({editing: false});
-              }}
-              cancel={()=>this.setState({editing: false})}
-              /></td>
+      <tr className={ 
+          (this.state.state) + 
+          (this.state.error ? "error" : "")
+        }>
+            <td>{this.state.member.id}</td>
+            <td><input type="text" value={this.state.newMember.name} disabled={this.state.state != State.EDITING} onChange={event => {
+              const newMember = cloneMember(this.state.newMember);
+              newMember.name = event.target.value;
+              this.setState({newMember: newMember});
+            }}/></td>
+            <td><input type="email" value={this.state.newMember.email} disabled={this.state.state != State.EDITING} onChange={event => {
+              const newMember = cloneMember(this.state.newMember);
+              newMember.email = event.target.value;
+              this.setState({newMember: newMember});
+            }}/></td>
+            <td><input type="text" value={this.state.newMember.address} disabled={this.state.state != State.EDITING} onChange={event => {
+              const newMember = cloneMember(this.state.newMember);
+              newMember.address = event.target.value;
+              this.setState({newMember: newMember});
+            }}/></td>
+            <td><input type="number" value={this.state.newMember.mobile} disabled={this.state.state != State.EDITING} onChange={event => {
+              const newMember = cloneMember(this.state.newMember);
+              newMember.mobile = Number.parseInt(event.target.value);
+              this.setState({newMember: newMember});
+            }}/></td>
+            <td>
+              { 
+                // EDIT BUTTON
+                this.state.state == State.DEFAULT &&
+                <button title="Edit member's details" className="edit-button" onClick={() => {
+                  this.setState({
+                    state: State.EDITING,
+                    error: null,
+                    newMember: this.state.member
+                  });
+                }}><FontAwesomeIcon icon={faEdit} /></button>
+              }
+              {
+                // SAVE BUTTON
+                this.state.state == State.EDITING &&
+                <button title='Save changes' className="save-button" onClick={()=>{
+                  this.setState({
+                    state: State.LOADING,
+                    error: null,
+                  });
+                  fetch(api_url("update-member"), {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                  },
+                    body: JSON.stringify({
+                      member: this.state.newMember,
+                    }),
+                  }).then(response => {
+                    this.setState({
+                      state: response.status < 300 ? State.DEFAULT : State.EDITING,
+                      error: response.status >= 300 ? "Failed to update member" : null,
+                      member: this.state.newMember,
+                    });
+                  }).catch(error => {
+                    console.log(error);
+                    this.setState({
+                      state: State.EDITING,
+                      error: "Network error in save",
+                    });
+                  });
+                }}><FontAwesomeIcon icon={faCheck} /></button>
+              }
+              {
+                // CANCEL BUTTON
+                this.state.state == State.EDITING &&
+                <button title='Cancel changes' className="cancel-button" onClick={()=>{
+                  this.setState({
+                    state: State.DEFAULT,
+                    error: null,
+                    newMember: this.state.member
+                  });
+                }}><FontAwesomeIcon icon={faXmark} /></button>
+              }
+              {
+                // DELETE BUTTON
+                this.state.state == State.DEFAULT &&
+                <button title='Delete member' className="delete-button" onClick={()=>{
+                  this.setState({
+                    state: State.LOADING,
+                    error: null,
+                  });
+                  fetch(api_url("delete-member"), {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                  },
+                    body: JSON.stringify({
+                      id: this.state.member.id
+                    }),
+                  }).then(response => {
+                    this.setState({
+                        state: response.status < 300 ? State.DELETED : State.DEFAULT,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                        error: response.status >= 300 ? "Failed to delete" : null,
+                    });
+                  }).catch(error => {
+                    console.log(error);
+                    this.setState({
+                      state: State.DEFAULT,
+                      error: "Network error in delete",
+                    });
+                  });
+                }}><FontAwesomeIcon icon={faTrash} /></button> 
+              }
+              {
+                // UNDO BUTTON
+                this.state.state == State.DELETED &&
+                <button title='Undo deletion' className="undo-button" onClick={()=>{
+                  this.setState({
+                    state: State.LOADING,
+                    error: null,
+                  });
+                  fetch(api_url("update-member"), {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                  },
+                    body: JSON.stringify({
+                      member: this.state.member
+                    }),
+                  }).then(response => {
+                    this.setState({
+                      state: response.status < 300 ? State.DEFAULT : State.DELETED,
+                      error: response.status >= 300 ? "Failed to undo deletion" : null
+                    });
+                  }).catch(error => {
+                    console.log(error);
+                    this.setState({
+                      state: State.DELETED,
+                      error: "Network error in undo",
+                    });
+                  });
+                }}><FontAwesomeIcon icon={faUndo} /></button>
+              }
+              {
+                // ERROR MESSAGE
+                this.state.error !== null && 
+                <span title={this.state.error ?? "ok" } className='error-message'><FontAwesomeIcon icon={faCircleExclamation} /></span>
+              }
+              {
+                // LOADING MESSAGE
+                this.state.state == State.LOADING && 
+                <span title='Applying changes...' className='loading-message'><FontAwesomeIcon icon={faSpinner} /></span>
+              }
+            </td>
           </tr>
     );
   }
@@ -107,7 +206,6 @@ export class UserList extends React.Component<UserListProps, UserListState> {
 
 	render() {
 		if (this.state.members) {
-      console.log("sdf; " + this.state.members);
       const rows = this.state.members?.map((row) => <MemberRow key={row.id} member={row}/>);
       return (
         <table className="members">
@@ -118,6 +216,7 @@ export class UserList extends React.Component<UserListProps, UserListState> {
               <th>Email</th>
               <th>Mobile</th>
               <th>Address</th>
+              <th>&nbsp;</th>
             </tr>
           </thead>
           <tbody>
@@ -135,16 +234,22 @@ export class UserList extends React.Component<UserListProps, UserListState> {
 
 	fetchData() {	
     console.log("Fetching data");
-    fetch(apiURL+"list-members", {
+    fetch(api_url("list-members"), {
       method: 'POST'
     })
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        this.setState({
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-          members: data.members,
-        });
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (data.members) {
+          this.setState({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            members: data.members,
+          });
+        } else {
+          // TODO display an error response message
+          setTimeout(() => this.setState({members: null}), 5000);
+        }
       });
 	}
 }
