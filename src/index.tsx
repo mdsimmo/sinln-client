@@ -3,31 +3,33 @@ import ReactDOM from 'react-dom/client';
 import './index.scss';
 import { UserList } from './list';
 import { RegisterForm } from './register-form';
-import { Menu } from './menu';
+import { Menu, Page } from './menu';
 
 type SiteProps = Record<string, never>
 
 type SiteState = {
-  page: string;
+  page: Page;
 }
 
 class Site extends React.Component<SiteProps, SiteState> {
   constructor(props: SiteProps) {
     super(props);
     this.state = {
-      page: "login",
+      page: Page.REGISTER,
     };
   }
 
   render() {
     let page;
     switch (this.state.page) {
-      case "list":
+      case Page.LIST:
         page = <UserList />;
         break;
-      case "login":
-      default:
+      case Page.REGISTER: 
         page = <RegisterForm />;
+        break;
+      default:
+        console.error("Page not programmed: " + this.state.page);
         break;
     }
 

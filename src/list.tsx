@@ -2,6 +2,7 @@ import { faCheck, faCircleExclamation, faEdit, faSpinner, faTrash, faUndo, faXma
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import { api_url, cloneMember, Member } from './core';
+import './list.scss';
 
 enum State {
   DEFAULT = "",
@@ -38,7 +39,7 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
           (this.state.state) + 
           (this.state.error ? "error" : "")
         }>
-            <td>{this.state.member.id}</td>
+            <td><input type="text" value={this.state.member.id} disabled={true}/></td>
             <td><input type="text" value={this.state.newMember.name} disabled={this.state.state != State.EDITING} onChange={event => {
               const newMember = cloneMember(this.state.newMember);
               newMember.name = event.target.value;
@@ -94,7 +95,7 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
                       member: this.state.newMember,
                     });
                   }).catch(error => {
-                    console.log(error);
+                    console.error(error);
                     this.setState({
                       state: State.EDITING,
                       error: "Network error in save",
@@ -136,7 +137,7 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
                         error: response.status >= 300 ? "Failed to delete" : null,
                     });
                   }).catch(error => {
-                    console.log(error);
+                    console.error(error);
                     this.setState({
                       state: State.DEFAULT,
                       error: "Network error in delete",
@@ -166,7 +167,7 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
                       error: response.status >= 300 ? "Failed to undo deletion" : null
                     });
                   }).catch(error => {
-                    console.log(error);
+                    console.error(error);
                     this.setState({
                       state: State.DELETED,
                       error: "Network error in undo",
@@ -205,41 +206,40 @@ export class UserList extends React.Component<UserListProps, UserListState> {
 	}
 
 	render() {
-		if (this.state.members) {
-      const rows = this.state.members?.map((row) => <MemberRow key={row.id} member={row}/>);
-      return (
-        <table className="members">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Mobile</th>
-              <th>Address</th>
-              <th>&nbsp;</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows}
-          </tbody>
-        </table>
-      );
+		let rows;
+    if (this.state.members) {
+      rows = this.state.members?.map((row) => <MemberRow key={row.id} member={row}/>);
     } else {
       this.fetchData();
-      return (
-        <p>Loading...</p>
-      );
+      rows = <tr><td colSpan={6}>Loading...</td></tr>;
     }
+    return (
+      <table className="members">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Mobile</th>
+            <th>&nbsp;</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows}
+        </tbody>
+      </table>
+    );
 	}
 
 	fetchData() {	
-    console.log("Fetching data");
+    console.info("Fetching data");
     fetch(api_url("list-members"), {
       method: 'POST'
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        console.debug(data);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (data.members) {
           this.setState({
@@ -248,8 +248,13 @@ export class UserList extends React.Component<UserListProps, UserListState> {
           });
         } else {
           // TODO display an error response message
+          console.error("Failed to read data");
           setTimeout(() => this.setState({members: null}), 5000);
         }
+      }).catch(error => {
+        console.error(error);
+        // TODO display an error response message
+        //setTimeout(() => this.setState({members: null}), 5000);
       });
 	}
 }

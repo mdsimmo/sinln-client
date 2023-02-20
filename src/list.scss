@@ -1,0 +1,45 @@
+@keyframes load-rotation {
+    to {
+      transform: rotate(360deg);
+    }
+}
+
+.members {
+    margin: 0 auto;
+    border-spacing: 0;
+    th {
+      font-weight: normal;
+      background-color: #ccc;
+    }
+  
+    tr.editing {
+      background-color: #eee;
+    }
+  
+    tr.deleted {
+      background-color: #777;
+    }
+  
+    td, th {
+      padding: 5px 15px;
+    }
+  
+    .loading-message svg {
+      animation: load-rotation 1s steps(8, end) infinite;
+    }
+  
+    input:disabled {
+      border: none;
+      background-color: transparent;
+    }
+  
+    @media print {
+      input {
+        border: none;
+        background-color: transparent;
+      }
+      button {
+        display: none;
+      }
+    }
+  }
