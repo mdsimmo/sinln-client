@@ -15,6 +15,10 @@ type MenuProps = {
 
 export class Menu extends React.Component<MenuProps> {
 
+    constructor(props: MenuProps) {
+        super(props);
+    }
+
     render() {
         return (
             <header>

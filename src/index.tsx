@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.scss';
 import { UserList } from './list';
-import { RegisterForm } from './register-form';
+import { RegisterScreen } from './register-form';
 import { Menu, Page } from './menu';
 
 type SiteProps = Record<string, never>
@@ -26,7 +26,7 @@ class Site extends React.Component<SiteProps, SiteState> {
         page = <UserList />;
         break;
       case Page.REGISTER: 
-        page = <RegisterForm />;
+        page = <RegisterScreen />;
         break;
       default:
         console.error("Page not programmed: " + this.state.page);
@@ -36,7 +36,7 @@ class Site extends React.Component<SiteProps, SiteState> {
     return (
       <Fragment>
         <Menu onDisplay={(page) => this.setState({page: page})}/>
-        {page}
+        <main>{page}</main>
       </Fragment>
     );
   }

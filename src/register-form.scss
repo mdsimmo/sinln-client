@@ -1,0 +1,30 @@
+form {
+    text-align: center;
+    box-sizing: border-box;
+    display: inline-block;
+    max-width: 50em;
+    width: 100%;
+    padding: 0em 3em;
+
+    label {
+        float: left;
+    }
+
+    input {
+        margin: 1.5em 0em;
+        padding: 0.5em;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #name::before {
+        content: "I";
+    }
+
+    button {
+        width: 100%;
+        padding: 1em;
+        margin: 1.5em 0;
+    }
+}
