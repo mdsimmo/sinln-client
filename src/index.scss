@@ -1,5 +1,8 @@
-$background-color-light: linear-gradient(to bottom, #124664, 70%, #221f25);
-$background-color-dark: #d9d9d9;
+$color-background: #d9d9d9;
+$color-accent: #ffdb0e;
+$color-complementry: complement($color-accent);
+
+$background-color-light: linear-gradient(to bottom, desaturate(darken(adjust-hue($color-complementry, -5), 25), 40), 70%, desaturate(darken(adjust-hue($color-complementry, 70), 40), 60));
 
 $form-color: #eee;
 
@@ -16,7 +19,7 @@ body {
     //height: 100%;
     margin: 0;
     box-sizing: border-box;
-    background-color: $background-color-dark;
+    background-color: $color-background;
     font-family: Arial, Helvetica, sans-serif;
 
     &::after {
@@ -28,7 +31,7 @@ body {
         top: 0;
         bottom: 3em;
         //height: $background-height;
-        background-color: $background-color-dark;
+        background-color: $color-background;
         mask-image: url("sinln-back.png");
         mask-repeat: repeat-x;
         mask-position: bottom;
@@ -63,16 +66,18 @@ body {
     align-items: center;
 
     h1 {
-        border-bottom: 2px solid #ffd800;
-        padding-bottom: 10px;
+        border-top: 2px solid $color-accent;
+        border-bottom: 2px solid $color-accent;
+        padding: 0.5em;
+        font-size: 200%;
     }
 
     button {
         padding: 1em 3em;
-        border: 2px solid #ffd800;
+        border: 2px solid $color-accent;
         border-radius: 1000px;
         background: #0004;
-        color: #ffd800;
+        color: $color-accent;
         font-size: 100%;
         margin-top: 1em;
 
