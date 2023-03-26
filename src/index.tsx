@@ -4,11 +4,13 @@ import './index.scss';
 import { UserList } from './list';
 import { RegisterScreen } from './register-form';
 import { Menu, Page } from './menu';
+import { getUserToken, login, UserToken } from './auth';
 
 type SiteProps = Record<string, never>
 
 type SiteState = {
   page: Page;
+  userToken: UserToken | null,
 }
 
 class Site extends React.Component<SiteProps, SiteState> {
@@ -16,18 +18,29 @@ class Site extends React.Component<SiteProps, SiteState> {
     super(props);
     this.state = {
       page: Page.REGISTER,
+      userToken: null,
     };
+    getUserToken().then(token => {
+      if (token != null) {
+        this.setState({
+          userToken: token,
+        });
+      }
+    });
   }
 
   render() {
     let page;
     switch (this.state.page) {
       case Page.LIST:
-        page = <UserList />;
+        page = <UserList userToken={this.state.userToken}/>;
         break;
       case Page.REGISTER: 
         page = <RegisterScreen />;
         break;
+      case Page.LOGIN:
+        login();
+        return <p>Redirecting...</p>;
       default:
         console.error("Page not programmed: " + this.state.page);
         break;

@@ -1,14 +1,22 @@
 import { faCheck, faCircleExclamation, faEdit, faSpinner, faTrash, faUndo, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
+import { UserToken } from './auth';
 import { api_url, cloneMember, Member } from './core';
 import './list.scss';
 
-enum State {
+enum RowState {
   DEFAULT = "",
   LOADING = "loading",
   DELETED = "deleted",
   EDITING = "editing",
+}
+
+enum ListState {
+  LOADING,
+  UNAUTHERISED,
+  ERROR,
+  LOADED,
 }
 
 type MemberProps = {
@@ -16,7 +24,7 @@ type MemberProps = {
 }
 
 type MemberState = {
-  state: State;
+  state: RowState;
   error: string | null;
   member: Member;
   newMember: Member;
@@ -26,7 +34,7 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
   constructor(props: MemberProps) {
     super(props);
     this.state = {
-      state: State.DEFAULT,
+      state: RowState.DEFAULT,
       error: null,
       member: props.member,
       newMember: props.member,
@@ -40,22 +48,22 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
           (this.state.error ? "error" : "")
         }>
             <td><input type="text" value={this.state.member.id} disabled={true}/></td>
-            <td><input type="text" value={this.state.newMember.name} disabled={this.state.state != State.EDITING} onChange={event => {
+            <td><input type="text" value={this.state.newMember.name} disabled={this.state.state != RowState.EDITING} onChange={event => {
               const newMember = cloneMember(this.state.newMember);
               newMember.name = event.target.value;
               this.setState({newMember: newMember});
             }}/></td>
-            <td><input type="email" value={this.state.newMember.email} disabled={this.state.state != State.EDITING} onChange={event => {
+            <td><input type="email" value={this.state.newMember.email} disabled={this.state.state != RowState.EDITING} onChange={event => {
               const newMember = cloneMember(this.state.newMember);
               newMember.email = event.target.value;
               this.setState({newMember: newMember});
             }}/></td>
-            <td><input type="text" value={this.state.newMember.address} disabled={this.state.state != State.EDITING} onChange={event => {
+            <td><input type="text" value={this.state.newMember.address} disabled={this.state.state != RowState.EDITING} onChange={event => {
               const newMember = cloneMember(this.state.newMember);
               newMember.address = event.target.value;
               this.setState({newMember: newMember});
             }}/></td>
-            <td><input type="number" value={this.state.newMember.mobile} disabled={this.state.state != State.EDITING} onChange={event => {
+            <td><input type="number" value={this.state.newMember.mobile} disabled={this.state.state != RowState.EDITING} onChange={event => {
               const newMember = cloneMember(this.state.newMember);
               newMember.mobile = Number.parseInt(event.target.value);
               this.setState({newMember: newMember});
@@ -63,10 +71,10 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
             <td>
               { 
                 // EDIT BUTTON
-                this.state.state == State.DEFAULT &&
+                this.state.state == RowState.DEFAULT &&
                 <button title="Edit member's details" className="edit-button" onClick={() => {
                   this.setState({
-                    state: State.EDITING,
+                    state: RowState.EDITING,
                     error: null,
                     newMember: this.state.member
                   });
@@ -74,10 +82,10 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
               }
               {
                 // SAVE BUTTON
-                this.state.state == State.EDITING &&
+                this.state.state == RowState.EDITING &&
                 <button title='Save changes' className="save-button" onClick={()=>{
                   this.setState({
-                    state: State.LOADING,
+                    state: RowState.LOADING,
                     error: null,
                   });
                   fetch(api_url("update-member"), {
@@ -90,14 +98,14 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
                     }),
                   }).then(response => {
                     this.setState({
-                      state: response.status < 300 ? State.DEFAULT : State.EDITING,
+                      state: response.status < 300 ? RowState.DEFAULT : RowState.EDITING,
                       error: response.status >= 300 ? "Failed to update member" : null,
                       member: this.state.newMember,
                     });
                   }).catch(error => {
                     console.error(error);
                     this.setState({
-                      state: State.EDITING,
+                      state: RowState.EDITING,
                       error: "Network error in save",
                     });
                   });
@@ -105,10 +113,10 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
               }
               {
                 // CANCEL BUTTON
-                this.state.state == State.EDITING &&
+                this.state.state == RowState.EDITING &&
                 <button title='Cancel changes' className="cancel-button" onClick={()=>{
                   this.setState({
-                    state: State.DEFAULT,
+                    state: RowState.DEFAULT,
                     error: null,
                     newMember: this.state.member
                   });
@@ -116,10 +124,10 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
               }
               {
                 // DELETE BUTTON
-                this.state.state == State.DEFAULT &&
+                this.state.state == RowState.DEFAULT &&
                 <button title='Delete member' className="delete-button" onClick={()=>{
                   this.setState({
-                    state: State.LOADING,
+                    state: RowState.LOADING,
                     error: null,
                   });
                   fetch(api_url("delete-member"), {
@@ -132,14 +140,14 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
                     }),
                   }).then(response => {
                     this.setState({
-                        state: response.status < 300 ? State.DELETED : State.DEFAULT,
+                        state: response.status < 300 ? RowState.DELETED : RowState.DEFAULT,
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         error: response.status >= 300 ? "Failed to delete" : null,
                     });
                   }).catch(error => {
                     console.error(error);
                     this.setState({
-                      state: State.DEFAULT,
+                      state: RowState.DEFAULT,
                       error: "Network error in delete",
                     });
                   });
@@ -147,10 +155,10 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
               }
               {
                 // UNDO BUTTON
-                this.state.state == State.DELETED &&
+                this.state.state == RowState.DELETED &&
                 <button title='Undo deletion' className="undo-button" onClick={()=>{
                   this.setState({
-                    state: State.LOADING,
+                    state: RowState.LOADING,
                     error: null,
                   });
                   fetch(api_url("update-member"), {
@@ -163,13 +171,13 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
                     }),
                   }).then(response => {
                     this.setState({
-                      state: response.status < 300 ? State.DEFAULT : State.DELETED,
+                      state: response.status < 300 ? RowState.DEFAULT : RowState.DELETED,
                       error: response.status >= 300 ? "Failed to undo deletion" : null
                     });
                   }).catch(error => {
                     console.error(error);
                     this.setState({
-                      state: State.DELETED,
+                      state: RowState.DELETED,
                       error: "Network error in undo",
                     });
                   });
@@ -182,7 +190,7 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
               }
               {
                 // LOADING MESSAGE
-                this.state.state == State.LOADING && 
+                this.state.state == RowState.LOADING && 
                 <span title='Applying changes...' className='loading-message'><FontAwesomeIcon icon={faSpinner} /></span>
               }
             </td>
@@ -191,28 +199,37 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
   }
 }
 
-type UserListProps = Record<string, never>
+type UserListProps = {
+  userToken: UserToken | null,
+}
 
 type UserListState = {
-  members: Member[] | null
+  members: Member[] | null,
+  state: ListState,
 }
 
 export class UserList extends React.Component<UserListProps, UserListState> {
 	constructor(props: UserListProps) {
 		super(props);
 		this.state = {
-      members: null
+      members: null,
+      state: ListState.LOADING,
     };
 	}
 
 	render() {
-		let rows;
-    if (this.state.members) {
-      rows = this.state.members?.map((row) => <MemberRow key={row.id} member={row}/>);
-    } else {
-      this.fetchData();
-      rows = <tr><td colSpan={6}>Loading...</td></tr>;
-    }
+    switch (this.state.state) {
+      case ListState.LOADING:
+        this.fetchData();
+        return <p>LOADING</p>;
+      case ListState.LOADED:
+        return this.showLoadedTable();
+      case ListState.UNAUTHERISED:
+        return <p>UNAUTHERISZED</p>;
+    }    
+	}
+
+  showLoadedTable() {
     return (
       <table className="members">
         <thead>
@@ -226,35 +243,50 @@ export class UserList extends React.Component<UserListProps, UserListState> {
           </tr>
         </thead>
         <tbody>
-          {rows}
+          {this.state.members?.map((row) => <MemberRow key={row.id} member={row}/>)}
         </tbody>
       </table>
     );
-	}
+  }
 
-	fetchData() {	
+	async fetchData() {	
     console.info("Fetching data");
-    fetch(api_url("list-members"), {
-      method: 'POST'
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.debug(data);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (data.members) {
-          this.setState({
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            members: data.members,
-          });
-        } else {
-          // TODO display an error response message
-          console.error("Failed to read data");
-          setTimeout(() => this.setState({members: null}), 5000);
-        }
-      }).catch(error => {
-        console.error(error);
-        // TODO display an error response message
-        //setTimeout(() => this.setState({members: null}), 5000);
+    const response = await fetch(api_url("list-members"), {
+      method: 'POST',
+      headers: {
+        Authorization: this.props.userToken?.id_token ?? "",
+      },
+    }).catch(error => {
+      console.log(error);
+      this.setState({
+        state: ListState.ERROR,
       });
+      // Retry later
+      setTimeout(() => this.setState({state: ListState.LOADING}), 5000);
+    });
+    if (response?.ok) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const data = await response.json();
+      console.debug(data);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (data.members) {
+        this.setState({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          members: data.members,
+          state: ListState.LOADED,
+        });
+      } else {
+        // TODO display an error response message
+        console.error("Failed to read data");
+        this.setState({
+          state: ListState.ERROR,
+        });
+        setTimeout(() => this.setState({state: ListState.LOADING}), 5000);
+      }
+    } else if (response?.status == 401) {
+      this.setState({
+        state: ListState.UNAUTHERISED,
+      });
+    }
 	}
 }
