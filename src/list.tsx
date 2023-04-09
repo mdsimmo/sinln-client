@@ -1,6 +1,6 @@
-import { faCheck, faCircleExclamation, faEdit, faSpinner, faTrash, faUndo, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCircleExclamation, faEdit, faSearch, faSpinner, faTrash, faUndo, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react';
+import React, { Fragment, useState } from 'react';
 import { UserToken } from './auth';
 import { api_url, cloneMember, Member } from './core';
 import './list.scss';
@@ -28,6 +28,26 @@ type MemberState = {
   error: string | null;
   member: Member;
   newMember: Member;
+}
+
+type ListControlsProps = {
+  onSearch: (terms: string[]) => void,
+}
+
+function ListControls(props: ListControlsProps) {
+  const [search, setSearch] = useState("bob");
+
+  return (
+    <ul>
+      <label htmlFor="search-input"><FontAwesomeIcon icon={faSearch}/></label>
+      <input id="search-input" type="text" value={search} onChange={(e) => {
+        const searchText = e.target.value;
+        const terms = searchText.split('[ ,]').map(s=>s.toLowerCase()).filter(it => it.length > 0);
+        setSearch(searchText);
+        props.onSearch(terms);
+      }}  />
+    </ul>
+  );
 }
 
 class MemberRow extends React.Component<MemberProps, MemberState> {
@@ -58,12 +78,12 @@ class MemberRow extends React.Component<MemberProps, MemberState> {
               newMember.email = event.target.value;
               this.setState({newMember: newMember});
             }}/></td>
-            <td><input type="text" value={this.state.newMember.address} disabled={this.state.state != RowState.EDITING} onChange={event => {
+            <td><input type="text" value={this.state.newMember.address ?? ""} disabled={this.state.state != RowState.EDITING} onChange={event => {
               const newMember = cloneMember(this.state.newMember);
               newMember.address = event.target.value;
               this.setState({newMember: newMember});
             }}/></td>
-            <td><input type="number" value={this.state.newMember.mobile} disabled={this.state.state != RowState.EDITING} onChange={event => {
+            <td><input type="number" value={this.state.newMember.mobile ?? 0} disabled={this.state.state != RowState.EDITING} onChange={event => {
               const newMember = cloneMember(this.state.newMember);
               newMember.mobile = Number.parseInt(event.target.value);
               this.setState({newMember: newMember});
@@ -206,6 +226,7 @@ type UserListProps = {
 type UserListState = {
   members: Member[] | null,
   state: ListState,
+  searchTerms: string[],
 }
 
 export class UserList extends React.Component<UserListProps, UserListState> {
@@ -214,6 +235,7 @@ export class UserList extends React.Component<UserListProps, UserListState> {
 		this.state = {
       members: null,
       state: ListState.LOADING,
+      searchTerms: [],
     };
 	}
 
@@ -231,21 +253,32 @@ export class UserList extends React.Component<UserListProps, UserListState> {
 
   showLoadedTable() {
     return (
-      <table className="members">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Address</th>
-            <th>Mobile</th>
-            <th>&nbsp;</th>
-          </tr>
-        </thead>
-        <tbody>
-          {this.state.members?.map((row) => <MemberRow key={row.id} member={row}/>)}
-        </tbody>
-      </table>
+      <Fragment>
+        <ListControls onSearch={terms => this.setState({searchTerms: terms})}/>
+        <table className="members">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Address</th>
+              <th>Mobile</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.members?.filter(member => {
+              if (this.state.searchTerms.length == 0) {
+                // Ignore search if empty
+                return true;
+              }
+              const data = (member.id + " " + member.name + " " + member.address + " " + member.email + " " + member.mobile).toLowerCase();
+              const termMissing = this.state.searchTerms.some(term => !data.includes(term));
+              return !termMissing;
+            }).map((row) => <MemberRow key={row.id} member={row}/>)}
+          </tbody>
+        </table>
+      </Fragment>
     );
   }
 

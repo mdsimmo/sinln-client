@@ -53,45 +53,10 @@ body {
 #root {
     max-width: 100%;
 }
-.splash {
-    position: absolute;
-    max-width: 100%;
-    top: 0em;
-    bottom: 8em;
-    left: 0;
-    right: 0;
-    color: #ddd;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 
-    h1 {
-        border-top: 2px solid $color-accent;
-        border-bottom: 2px solid $color-accent;
-        padding: 0.5em;
-        font-size: 200%;
-    }
-
-    button {
-        padding: 1em 3em;
-        border: 2px solid $color-accent;
-        border-radius: 1000px;
-        background: #0004;
-        color: $color-accent;
-        font-size: 100%;
-        margin-top: 1em;
-
-        &:hover {
-            background: #0009;
-        }
-    }
-}
-
-.splash + article {
-    margin-top: 40em;
-}
 main {
     overflow: auto;
+    margin-top: 5em;
 }
 
 button {

@@ -1,34 +1,75 @@
 @import 'index.scss';
 
-form {
-    text-align: center;
-    box-sizing: border-box;
-    display: inline-block;
-    max-width: 50em;
-    width: 100%;
-    padding: 2em 3em;
-    margin-top: 5em;
-    background-color: #aaa;
+.page-register {
+    
+    .splash {
+        position: absolute;
+        max-width: 100%;
+        top: 0em;
+        bottom: 8em;
+        left: 0;
+        right: 0;
+        color: #ddd;
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
-    label {
-        float: left;
+        h1 {
+            border-top: 2px solid $color-accent;
+            border-bottom: 2px solid $color-accent;
+            padding: 0.5em;
+            font-size: 200%;
+        }
+
+        button {
+            padding: 1em 3em;
+            border: 2px solid $color-accent;
+            border-radius: 1000px;
+            background: #0004;
+            color: $color-accent;
+            font-size: 100%;
+            margin-top: 1em;
+
+            &:hover {
+                background: #0009;
+            }
+        }
     }
 
-    input {
-        margin: 1.5em 0em;
-        padding: 0.5em;
-        display: block;
-        width: 100%;
+    .splash + article {
+        margin-top: 40em;
+    }
+
+    form {
+        text-align: center;
         box-sizing: border-box;
-    }
-
-    #name::before {
-        content: "I";
-    }
-
-    button {
+        display: inline-block;
+        max-width: 50em;
         width: 100%;
-        padding: 1em;
-        margin: 1.5em 0;
+        padding: 2em 3em;
+        margin-top: 5em;
+        background-color: #aaa;
+
+        label {
+            float: left;
+        }
+
+        input {
+            margin: 1.5em 0em;
+            padding: 0.5em;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #name::before {
+            content: "I";
+        }
+
+        button {
+            width: 100%;
+            padding: 1em;
+            margin: 1.5em 0;
+        }
     }
 }

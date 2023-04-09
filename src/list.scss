@@ -4,14 +4,20 @@
     }
 }
 
-.members {
+.page-list {
+
+  .members {
+
     margin: 0 auto;
     border-spacing: 0;
+    background-color: #ddd;
+
+
     th {
       font-weight: normal;
       background-color: #ccc;
     }
-  
+
     tr.editing {
       background-color: #eee;
     }
@@ -43,3 +49,4 @@
       }
     }
   }
+}

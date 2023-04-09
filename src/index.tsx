@@ -49,7 +49,7 @@ class Site extends React.Component<SiteProps, SiteState> {
     return (
       <Fragment>
         <Menu onDisplay={(page) => this.setState({page: page})}/>
-        <main>{page}</main>
+        <main className={`page-${Page[this.state.page].toLowerCase()}`}>{page}</main>
       </Fragment>
     );
   }
